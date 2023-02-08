@@ -1,12 +1,13 @@
-import { CACHE_MANAGER, HttpException, Inject } from '@nestjs/common';
-import { Cache } from 'cache-manager';
+import { HttpException } from '@nestjs/common';
+import { InjectRedis } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 
 export class IsTokenValidationService {
-  constructor(@Inject(CACHE_MANAGER) private cacheService: Cache) {}
+  constructor(@InjectRedis() private readonly redis: Redis) {}
 
   public async isTokenValid(token: string) {
-    const tokenFound = (await this.cacheService.get(token)) as any;
+    const tokenFound = await this.redis.get(token);
     if (tokenFound) return true;
-    throw new HttpException('Token expired or not found.',400);
+    throw new HttpException('Token expired or not found.', 400);
   }
 }

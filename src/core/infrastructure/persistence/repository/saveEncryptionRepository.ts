@@ -1,11 +1,11 @@
 import { SaveEncryptionRepositoryInterface } from 'src/core/domain/repository/saveEncryptionRepositoryInterface';
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
-import { Cache } from 'cache-manager';
+import { InjectRedis } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 
 export class SaveEncryptionRepository
   implements SaveEncryptionRepositoryInterface
 {
-  constructor(@Inject(CACHE_MANAGER) private cacheService: Cache) {}
+  constructor(@InjectRedis() private readonly redis: Redis) {}
 
   async save(
     encryptedContent: string,
@@ -13,8 +13,6 @@ export class SaveEncryptionRepository
     ttl: number,
     hash: string,
   ) {
-    return await this.cacheService.set(token, hash + ',' + encryptedContent, {
-      ttl: ttl,
-    });
+    this.redis.set(token, hash + ',' + encryptedContent, 'EX', ttl);
   }
 }
